@@ -29,9 +29,12 @@ parser = argparse.ArgumentParser(description='This script creates a CDN enabled 
 parser.add_argument('container', metavar='ContainerName', type=str, nargs='+', 
 				help='Name of the Cloud Files container, if it \
 					doesn\'t exist it will be created.')
+parser.add_argument('fqdn', metavar='CNAMERecord', type=str, nargs='+', 
+				help='FQDN to use to create a CNAME record with the container\'s CDN URL')
 args = parser.parse_args()
 
 container_name = args.container[0]
+fqdn = args.fqdn[0]
 
 credentials_file = os.path.expanduser("~/.rackspace_cloud_credentials")
 try:
@@ -63,4 +66,29 @@ print "Calculated checksum:", chksum
 print "Stored object etag:", index_file.etag
 
 print "Container CDN URI", cont.cdn_uri
-#TODO
+
+dns = pyrax.cloud_dns
+
+print fqdn
+domain, ext = fqdn.split('.')[-2:]
+domain_name = domain + '.' + ext
+
+try:
+	domain = dns.find(name=domain_name)
+except pyrax.exceptions.NotFound:
+	print "Domain name '%s' not found, exiting." %domain_name
+	sys.exit(1)
+
+cname_record = {"type": "CNAME",
+        "name": fqdn,
+        "data": cont.cdn_uri[7:],
+        "ttl": 300}
+
+
+try:
+	record = domain.add_records(cname_record)
+except pyrax.exceptions.DomainRecordAdditionFailed:
+	print "Error: Fqdn has already been taken by another resource record, exiting."
+	sys.exit(1)
+
+print record
