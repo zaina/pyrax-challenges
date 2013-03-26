@@ -19,10 +19,10 @@
 	IP and login credentials for each one."""
 
 # Script variables
-number = 3
+limit = 3
 size = 512
 image = "CentOS"
-servername = "zen"
+servername = "server"
 
 import pyrax
 import os
@@ -33,22 +33,34 @@ try:
 	pyrax.set_credential_file(credentials_file)
 except pyrax.exceptions.AuthenticationFailed:
 	print "Anthentication failed. Valid credentials needed in ~/.rackspace_cloud_credentials"
-print "authenticated =", pyrax.identity.authenticated
-print
 
 cs = pyrax.cloudservers
 flavor = [flavor for flavor in cs.flavors.list() if flavor.ram == size][0]
 image = [img for img in cs.images.list() if image in img.name][0]
 
-for i in range(0,number):
+print "Building %s %s %s servers." %(limit,size,image.name)
+print
+
+servers = []
+print "Starting server builds..."
+for i in range(0,limit):
 	server_name = servername + str(i+1)
-	print "Creating server %s..." %server_name
 	server = cs.servers.create(server_name, image.id, flavor.id)
-	print "Root Password: %s" % server.adminPass
-	# Wait for networking to be provisioned
-	while not server.networks:
-		server.get()
-		time.sleep(1)
-	print "Public IPv4 Address: %s" % server.networks["public"][1]
-	print "Public IPv6 Address: %s" % server.networks["public"][0]
-	print
+	servers.append(server) 
+
+#print servers
+
+print "Wait for networking to be provisioned..."
+print
+while servers:
+	for server in servers:
+		if not server.networks:
+			server.get()
+			time.sleep(1)
+		else:
+			print "Server %s Created..." %server.human_id
+			print "Server Status:", server.status
+			print "Root Password:", server.adminPass
+			print "Public IP Address:", server.networks["public"]
+			print	
+			servers.remove(server)
