@@ -18,11 +18,16 @@
 """ This script builds three 512MB CentOS Servers and returns the 
 	IP and login credentials for each one."""
 
+# Script variables
+number = 3
+size = 512
+image = "CentOS"
+servername = "zen"
+
 import pyrax
 import os
 import time
 
-print "Using credentials file"
 credentials_file = os.path.expanduser("~/.rackspace_cloud_credentials")
 try:
 	pyrax.set_credential_file(credentials_file)
@@ -32,19 +37,18 @@ print "authenticated =", pyrax.identity.authenticated
 print
 
 cs = pyrax.cloudservers
-flavor_512 = [flavor for flavor in cs.flavors.list() if flavor.ram == 512][0]
-cent_img = [img for img in cs.images.list() if "CentOS" in img.name][0]
+flavor = [flavor for flavor in cs.flavors.list() if flavor.ram == size][0]
+image = [img for img in cs.images.list() if image in img.name][0]
 
-server_names = ["zen1","zen2","zen3"]
-for name in server_names:
-	print "Creating server %s..." %name
-	server = cs.servers.create(name, cent_img.id, flavor_512.id)
+for i in range(0,number):
+	server_name = servername + str(i+1)
+	print "Creating server %s..." %server_name
+	server = cs.servers.create(server_name, image.id, flavor.id)
 	print "Root Password: %s" % server.adminPass
 	# Wait for networking to be provisioned
-	while not cs.servers.get(server.id).networks:
+	while not server.networks:
+		server.get()
 		time.sleep(1)
-	network = cs.servers.get(server.id).networks
-	print "Public IP Address: %s" % network["public"]
-	print "Private IP Address: %s" % network["private"]
+	print "Public IPv4 Address: %s" % server.networks["public"][1]
+	print "Public IPv6 Address: %s" % server.networks["public"][0]
 	print
-

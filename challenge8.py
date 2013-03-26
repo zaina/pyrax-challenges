@@ -92,3 +92,4 @@ except pyrax.exceptions.DomainRecordAdditionFailed:
 	sys.exit(1)
 
 print record
+
