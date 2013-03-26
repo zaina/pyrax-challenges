@@ -19,6 +19,7 @@
 
 import pyrax
 import os
+import sys
 import time
 
 print "Using credentials file"
@@ -42,16 +43,24 @@ for server_name in server_names:
 	server = cs.servers.create(server_name, centos_img.id, flavor_512.id)
 	print "Root Password: %s" % server.adminPass
 	# Wait for networking to be provisioned
-	while not cs.servers.get(server.id).networks:
+	while not server.networks:
+		server.get()
+		if "ERROR" in server.status:
+			print "Server creation failed. Exiting"
+			sys.exit(1)
 		time.sleep(1)
 	network = cs.servers.get(server.id).networks
 	print "Public IP Address: %s" % network["public"]
-	node = clb.Node(address=network["private"], port=80, condition="ENABLED")
+	print
+	node = clb.Node(address=network["private"][0], port=80, condition="ENABLED")
 	nodes.append(node)
 
-print nodes
+#print nodes
+
 print "Creating a load Balancer..."
 vip = clb.VirtualIP(type="PUBLIC")
 lb = clb.create("WebLB", port=80, protocol="HTTP", nodes=nodes, virtual_ips=[vip])
 
-
+#print "Node:", node.to_dict()
+print "Virtual IP:", vip.to_dict()
+print "Load Balancer:", lb

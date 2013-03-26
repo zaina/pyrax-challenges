@@ -50,13 +50,13 @@ print "CDN Enabled:", cont.cdn_enabled
 print "TTL:", cont.cdn_ttl
 
 text = "<h1>Hello World!</h1>"
-"""with pyrax.utils.SelfDeletingTempfile() as index_file:
-	with file(index_file, "w") as tmp:
-		tmp.write(text)
-	path = os.path.basename(index_file)
-	print "Uploading file: %s" % path
-	cf.upload_file(cont, index_file, content_type="text/text")
-"""
+#with pyrax.utils.SelfDeletingTempfile() as index_file:
+#	with file(index_file, "w") as tmp:
+#		tmp.write(text)
+#	path = os.path.basename(index_file)
+#	print "Uploading file: %s" % path
+#	cf.upload_file(cont, index_file, content_type="text/text")
+
 chksum = pyrax.utils.get_checksum(text)
 index_file = cf.store_object(cont, "index.html", text)
 print "Calculated checksum:", chksum
