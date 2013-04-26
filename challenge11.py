@@ -109,7 +109,7 @@ except pyrax.exceptions.AuthenticationFailed:
     print "Anthentication failed. Valid credentials needed in", path
 
 
-#Creating isolated network
+# Creating isolated network
 cnw = pyrax.cloud_networks
 
 try:
@@ -117,9 +117,9 @@ try:
 except pyrax.exceptions.NetworkCountExceeded as e:
     print "Error: %s" %e
     sys.exit(1)
-print "New Cloud Network:", network
+print "Created New Cloud Network:", network
 
-networks = netwok.get_server_networks()
+networks = network.get_server_networks()
 
 # Building servers
 cs = pyrax.cloudservers
