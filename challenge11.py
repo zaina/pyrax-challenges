@@ -90,7 +90,7 @@ for i in range(limit):
     server = cs.servers.create(name, image.id, flavor.id, networks=networks)
     servers.append(server)
 
-servers_copy = servers
+servers_copy = servers[:]
 
 clb = pyrax.cloud_loadbalancers
 nodes = []
@@ -153,6 +153,8 @@ while not "ACTIVE" in clb.get(lb).status:
     time.sleep(1)
 
 
+print "Adding SSL certificate"
+
 # Adding SSL termination
 lb.add_ssl_termination(
         securePort=443,
@@ -166,6 +168,7 @@ lb.add_ssl_termination(
 # Attaching CBS volumes to servers
 cbs = pyrax.cloud_blockstorage
 mountpoint = "/dev/xvdb"
+print servers_copy
 for server in servers_copy:
     vol = cbs.create(name=name, size=100, volume_type="SATA")
     vol.attach_to_instance(server, mountpoint=mountpoint)
